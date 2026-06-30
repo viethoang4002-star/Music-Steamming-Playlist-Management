@@ -1,3 +1,4 @@
+
 #include "Playlist.h"
 #include <iostream>
 #include <iomanip>
@@ -291,6 +292,10 @@ void Playlist::playSong(int position) {
     cout << "=> Now playing: " << current->data.getTitle()
          << " - " << current->data.getArtist()
          << " (" << current->data.getDuration() << "s)" << endl;
+	historyStack.push(currentTrack->data);
+    while (!forwardStack.empty()) {
+        forwardStack.pop();
+    }
 }
 
 void Playlist::nextSong() {
@@ -306,6 +311,7 @@ void Playlist::nextSong() {
     cout << "=> Now playing: " << currentTrack->data.getTitle()
          << " - " << currentTrack->data.getArtist()
          << " (" << currentTrack->data.getDuration() << "s)" << endl;
+	historyStack.push(currentTrack->data);
 }
 
 void Playlist::previousSong() {
@@ -321,4 +327,50 @@ void Playlist::previousSong() {
     cout << "=> Now playing: " << currentTrack->data.getTitle()
          << " - " << currentTrack->data.getArtist()
          << " (" << currentTrack->data.getDuration() << "s)" << endl;
+	historyStack.push(currentTrack->data);
+
+}
+
+void Playlist::displayRecentlyPlayed() const {
+    if (historyStack.empty()) {
+        cout << "Recently played list is empty!" << endl;
+        return;
+    }
+
+    cout << "\n================= RECENTLY PLAYED =================" << endl;
+    stack<Song> tempStack = historyStack;
+    int index = 1;
+
+    while (!tempStack.empty()) {
+        Song s = tempStack.top(); 
+        cout << index << ". " << s.getTitle() << " - " << s.getArtist() << endl;
+        tempStack.pop(); 
+        index++;
+    }
+    cout << "===================================================\n" << endl;
+}
+
+void Playlist::backtoLastPlayed() {
+    if (historyStack.size() <= 1) {
+        cout << "No previous song in history to go back!" << endl;
+        return;
+    }
+
+    Song currentSong = historyStack.top();
+    historyStack.pop();
+    forwardStack.push(currentSong);
+
+    Song previousSong = historyStack.top();
+    cout << "=> Back to previous song!" << endl;
+    cout << "=> Now playing: " << previousSong.getTitle()
+         << " - " << previousSong.getArtist() << endl;
+
+    Node* temp = head;
+    do {
+        if (temp->data.getTitle() == previousSong.getTitle() && temp->data.getArtist() == previousSong.getArtist()) {
+            currentTrack = temp;
+            break;
+        }
+        temp = temp->next;
+    } while (temp != head);
 }
